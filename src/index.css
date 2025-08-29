@@ -1,68 +1,75 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root{
+  --cai-navy:#0B1B34;
+  --cai-teal:#0096A5;
+  --cai-teal-strong:#00A5A9;
+  --cai-gold:#D4AF37;
+  --cai-ink:#161A22;
+  --cai-muted:#4A5568;
+  --cai-bg:#FFFFFF;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial,sans-serif;
+  color:var(--cai-navy);
+  background:var(--cai-bg);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.container{max-width:1120px;margin:0 auto;padding:0 20px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--cai-teal);color:#fff;border:none;
+  padding:14px 18px;border-radius:14px;font-weight:800;
+  text-decoration:none;cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,150,165,.25);
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
+.btn:hover,.btn:focus-visible{transform:translateY(-1px);box-shadow:0 10px 22px rgba(0,150,165,.35);background:var(--cai-teal-strong);outline:none}
+.btn--ghost{background:transparent;color:var(--cai-navy);border:2px solid rgba(11,27,52,.12)}
+.badge{display:inline-flex;gap:.5rem;align-items:center;background:#F3F7FA;color:#1F2937;padding:6px 10px;border-radius:999px;font-weight:700;font-size:.85rem}
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+nav{
+  position:sticky;top:0;z-index:40;background:#fffcc000;
+  backdrop-filter:saturate(180%) blur(6px);
+  background:rgba(255,255,255,.8);
+  border-bottom:1px solid rgba(11,27,52,.06);
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.brand{display:flex;gap:.6rem;align-items:center}
+.brand img{height:34px;width:auto}
+.brand .word{font-weight:800;letter-spacing:.2px}
+
+.hero{padding:64px 0 36px}
+.hero h1{font-size:clamp(2rem,2.4vw + 1.2rem,3.25rem);line-height:1.1;margin:0 0 14px 0;font-weight:900;letter-spacing:.2px}
+.hero p{font-size:1.15rem;color:var(--cai-ink);max-width:780px}
+
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.kpis .card{background:#fff;border:1px solid rgba(11,27,52,.08);border-radius:18px;padding:16px}
+.kpis .n{font-weight:900;font-size:1.35rem}
+.kpis .t{color:var(--cai-muted);font-size:.95rem}
+
+.section{padding:54px 0}
+.section h2{font-size:1.8rem;margin:0 0 16px;font-weight:900}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.feature{background:#fff;border:1px solid rgba(11,27,52,.08);border-radius:18px;padding:18px}
+.feature h3{margin:0 0 8px;font-size:1.15rem}
+.feature p{margin:0;color:#253044}
+
+.divider{height:1px;background:rgba(11,27,52,.08);margin:36px 0}
+
+.cta{
+  background:#fff;
+  border:1px solid rgba(11,27,52,.08);
+  border-radius:22px;padding:22px;
 }
+.cta h3{margin:0 0 8px;font-size:1.6rem}
+.cta p{margin:0 0 14px;color:var(--cai-ink)}
+.cta .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+footer{padding:36px 0;color:var(--cai-muted);font-size:.95rem}
+footer .row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}

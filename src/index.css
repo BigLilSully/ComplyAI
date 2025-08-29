@@ -26,6 +26,9 @@ body{
   box-shadow:0 6px 18px rgba(0,150,165,.25);
   transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
+.btn--xl{padding:18px 22px;font-size:1.1rem;border-radius:16px} /* larger CTA */
+.btn--gold{background:var(--cai-gold);color:#0B1B34}              /* high-contrast */
+.btn--gold:hover,.btn--gold:focus-visible{background:#c39c2f;color:#0B1B34} /* slight darken */
 .btn:hover,.btn:focus-visible{transform:translateY(-1px);box-shadow:0 10px 22px rgba(0,150,165,.35);background:var(--cai-teal-strong);outline:none}
 .btn--ghost{background:transparent;color:var(--cai-navy);border:2px solid rgba(11,27,52,.12)}
 .badge{display:inline-flex;gap:.5rem;align-items:center;background:#F3F7FA;color:#1F2937;padding:6px 10px;border-radius:999px;font-weight:700;font-size:.85rem}
@@ -67,9 +70,28 @@ nav{
   border:1px solid rgba(11,27,52,.08);
   border-radius:22px;padding:22px;
 }
+.lead-cta{background:#FFFCF2;border-color:rgba(212,175,55,.55)} /* subtle highlight */
 .cta h3{margin:0 0 8px;font-size:1.6rem}
 .cta p{margin:0 0 14px;color:var(--cai-ink)}
 .cta .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 
 footer{padding:36px 0;color:var(--cai-muted);font-size:.95rem}
 footer .row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* Email capture inline form */
+.email-form{margin-top:12px} /* spacing above the form */
+.email-form__row{display:flex;gap:10px;flex-wrap:wrap} /* input + button row */
+.email-form__row input{
+  flex:1 1 260px;              /* grow on wide screens */
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid rgba(11,27,52,.12);
+  font-size:1rem;
+}
+.email-form__success{
+  background:#F3F7FA;           /* subtle success background */
+  border:1px solid rgba(11,27,52,.12);
+  padding:12px 14px;
+  border-radius:12px;
+  color:#1F2937;
+}

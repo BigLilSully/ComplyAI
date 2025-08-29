@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react"; // useState: simple UI + form state
 
 const BRAND = "ComplyAI"; // change to "CompyAI" if desired
 
@@ -118,6 +118,128 @@ function HowItWorks() {
   );
 }
 
+// Simple email capture section (updates only)
+function EmailCapture(){
+  const [open, setOpen] = useState(false);   // show/hide the form
+  const [email, setEmail] = useState("");    // user input value
+  const [submitted, setSubmitted] = useState(false); // submitted state
+
+  function handleSubmit(e){
+    e.preventDefault();         // don't reload the page
+    setSubmitted(true);         // show confirmation
+    // TODO: send `email` to your backend/service here for updates
+  }
+
+  return (
+    <section className="section">
+      <div className="container">
+        <div className="cta" role="region" aria-label="Get updates">
+          <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
+            <div style={{textAlign:'left'}}>
+              <h3 style={{marginBottom:6}}>Get updates from {BRAND}</h3>
+              <p style={{margin:0}}>Be the first to hear about new templates and guidance.</p>
+            </div>
+            <button
+              className="btn btn--ghost"          /* CTA: updates */
+              type="button"
+              onClick={() => { setOpen(v => !v); setSubmitted(false); }} // toggle form
+              aria-expanded={open}
+              aria-controls="email-capture"
+            >
+              {open ? 'Close' : 'Get updates via email'}
+            </button>
+          </div>
+
+          {open && (
+            <div id="email-capture" className="email-form" role="region" aria-label="Email capture">
+              {submitted ? (
+                <div className="email-form__success" role="status">
+                  {"Thanks! We'll keep you posted."}
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="email-form__row"> {/* submit shows success */}
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="you@company.com"
+                    aria-label="Email address"
+                    required
+                    value={email}               // controlled input
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <button className="btn" type="submit">Notify me</button>
+                  <button className="btn btn--ghost" type="button" onClick={() => setOpen(false)}>Close</button>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Lead Magnet CTA in its own section with larger, bolder button
+function LeadMagnetSection(){
+  const [open, setOpen] = useState(false);   // show/hide the form
+  const [email, setEmail] = useState("");    // user input value
+  const [submitted, setSubmitted] = useState(false); // submitted state
+
+  function handleSubmit(e){
+    e.preventDefault();         // don't reload the page
+    setSubmitted(true);         // show confirmation
+    // TODO: send `email` to your backend/service and email the PDF
+  }
+
+  return (
+    <section className="section">
+      <div className="container">
+        <div className="cta lead-cta" role="region" aria-label="Lead Magnet">
+          <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
+            <div style={{textAlign:'left'}}>
+              <h3 style={{marginBottom:6}}>TOP 10  AI COMPLIANCE  MISTAKES TO  AVOID IN 2025</h3>
+              <p style={{margin:0}}>Enter your email to get the PDF delivered.</p>
+            </div>
+            <button
+              className="btn btn--xl btn--gold"  /* big + bold button */
+              type="button"
+              onClick={() => { setOpen(v => !v); setSubmitted(false); }}
+              aria-expanded={open}
+              aria-controls="lead-magnet-capture"
+            >
+              Get the PDF File
+            </button>
+          </div>
+
+          {open && (
+            <div id="lead-magnet-capture" className="email-form" role="region" aria-label="Lead Magnet email capture">
+              {submitted ? (
+                <div className="email-form__success" role="status">
+                  Thanks! The PDF File is on the way.
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="email-form__row">
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="you@company.com"
+                    aria-label="Email address"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <button className="btn btn--gold" type="submit">Send me the PDF File</button>
+                  <button className="btn btn--ghost" type="button" onClick={() => setOpen(false)}>Close</button>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CTA() {
   return (
     <section id="toolkit" className="section">
@@ -160,6 +282,8 @@ export default function App(){
     <>
       <Navbar />
       <Hero />
+      <LeadMagnetSection /> {/* New: bold lead magnet section */}
+      <EmailCapture /> {/* New: email signup section */}
       <div className="divider" />
       <Features />
       <HowItWorks />

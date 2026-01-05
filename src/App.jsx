@@ -1,6 +1,8 @@
 // App entry: page layout and interactive sections
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./sections/Navbar";
 import Hero from "./sections/Hero";
 import AboutSection from "./sections/AboutSection";
@@ -12,6 +14,8 @@ import NewsSection from "./sections/NewsSection";
 import CTA from "./sections/CTA";
 import Footer from "./sections/Footer";
 import NewsPage from "./pages/NewsPage";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import { newsItems } from "./content/siteContent";
 
 const BRAND = "ComplyAI";
@@ -62,13 +66,24 @@ function LandingPage() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Navbar brand={BRAND} />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/news" element={<NewsPage brand={BRAND} />} />
-      </Routes>
-      <Footer brand={BRAND} />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Navbar brand={BRAND} />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/news" element={<NewsPage brand={BRAND} />} />
+          <Route path="/login" element={<Login brand={BRAND} />} />
+          <Route
+            path="/app"
+            element={(
+              <ProtectedRoute>
+                <Dashboard brand={BRAND} />
+              </ProtectedRoute>
+            )}
+          />
+        </Routes>
+        <Footer brand={BRAND} />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

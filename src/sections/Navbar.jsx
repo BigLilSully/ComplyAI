@@ -1,7 +1,14 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar({ brand }) {
+  const { session, signOut } = useAuth();
+  const location = useLocation();
+  const isAuthed = Boolean(session);
+
+  const aboutHref = location.pathname === "/" ? "#about" : "/#about";
+
   return (
     <nav>
       <div className="container nav-inner">
@@ -10,8 +17,16 @@ export default function Navbar({ brand }) {
           <span className="word">{brand}</span>
         </Link>
         <div className="nav-actions">
-          <a className="btn btn--ghost" href="/news">Latest AI compliance news</a>
-          <a className="btn" href="#about">About ComplyAI</a>
+          <NavLink className="nav-link" to="/app">App</NavLink>
+          {isAuthed ? (
+            <button className="nav-link nav-link--button" type="button" onClick={() => signOut()}>
+              Sign out
+            </button>
+          ) : (
+            <NavLink className="nav-link" to="/login">Sign in</NavLink>
+          )}
+          <NavLink className="btn btn--ghost" to="/news">Latest AI compliance news</NavLink>
+          <a className="btn" href={aboutHref}>About ComplyAI</a>
         </div>
       </div>
     </nav>

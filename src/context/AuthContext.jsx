@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { hasSupabaseConfig, supabase } from "../lib/supabaseClient";
 
 const AuthContext = createContext(null);
 
@@ -32,6 +32,7 @@ export function AuthProvider({ children }) {
       session,
       user: session?.user || null,
       loading,
+      supabaseConfigured: hasSupabaseConfig,
       signUp: (email, password) => supabase.auth.signUp({ email, password }),
       signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
       signOut: () => supabase.auth.signOut()

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login({ brand }) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, supabaseConfigured } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
@@ -13,6 +13,11 @@ export default function Login({ brand }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (!supabaseConfigured) {
+      setError("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.");
+      return;
+    }
+
     setBusy(true);
     setError("");
 
@@ -34,6 +39,11 @@ export default function Login({ brand }) {
       <div className="auth-card">
         <h2>{mode === "signin" ? "Sign in" : "Create account"} to {brand}</h2>
         <p>Access your compliance workspace and automation tools.</p>
+        {!supabaseConfigured && (
+          <div className="form-error" role="alert">
+            Supabase auth is not configured. Create a `.env` file from `.env.example` and add your project URL and anon key.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <label>
@@ -58,7 +68,7 @@ export default function Login({ brand }) {
             />
           </label>
           {error && <div className="form-error" role="alert">{error}</div>}
-          <button className="btn" type="submit" disabled={busy}>
+          <button className="btn" type="submit" disabled={busy || !supabaseConfigured}>
             {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
           </button>
         </form>

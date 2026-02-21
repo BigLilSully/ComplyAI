@@ -11,12 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.97.0",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^6.26.2",
-    "express": "^4.19.2",
-    "resend": "^4.0.0",
-    "dotenv": "^16.4.5"
+    "resend": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

@@ -43,6 +43,7 @@ body{
 .skip-link:focus{left:12px;top:12px;width:auto;height:auto;background:#fff;border:2px solid var(--cai-teal);border-radius:10px;padding:8px 12px;z-index:100}
 
 .container{max-width:1120px;margin:0 auto;padding:0 20px}
+.container--wide{max-width:1360px}
 .btn{
   display:inline-flex;align-items:center;justify-content:center;
   background:linear-gradient(180deg, #00ADB4, #0096A5);color:#fff;border:1px solid rgba(255,255,255,.08);
@@ -103,6 +104,8 @@ nav .btn--ghost:hover, nav .btn--ghost:focus-visible{border-color:rgba(230,238,2
 .section .container > ol{color:rgba(230,238,247,.88)}
 /* Generic 3-up grid layout */
 .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+/* Wider layout specifically for the Toolkit page */
+.grid-toolkit{grid-template-columns:repeat(2,minmax(0,1fr))}
 /* Glassy content card */
 .feature{
   background:linear-gradient(180deg, var(--surface-strong), var(--surface));
@@ -184,6 +187,7 @@ footer .row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;a
 }
 @media (max-width: 620px){
   .grid-3{grid-template-columns:1fr}
+  .grid-toolkit{grid-template-columns:1fr}
   .kpis{grid-template-columns:1fr}
   .hero{padding:42px 0 24px}
 }

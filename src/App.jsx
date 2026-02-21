@@ -1,5 +1,8 @@
 // App entry: page layout and interactive sections
 import React, { useState, useEffect, useRef } from "react";
+import { Routes, Route, Link } from "react-router-dom";
+import Toolkit from "./pages/Toolkit.jsx";
+import News from "./pages/News.jsx";
 
 const BRAND = "ComplyAI"; // brand label
 
@@ -8,13 +11,12 @@ function Navbar() {
   return (
     <nav>
       <div className="container nav-inner">
-        <div className="brand">
+        <Link to="/" className="brand" aria-label="Go to home">
           <img src="/assets/complyai-logo.png" alt={`${BRAND} logo`} />
           <span className="word">{BRAND}</span>
-        </div>
+        </Link>
         <div style={{ display: "flex", gap: 12 }}>
-          <a className="btn btn--ghost" href="#toolkit">Toolkit</a>
-          <a className="btn" href="https://complyai.com/toolkit" target="_blank" rel="noopener">Get the Toolkit</a>
+          <Link className="btn" to="/news">Latest News</Link>
         </div>
       </div>
     </nav>
@@ -65,32 +67,7 @@ function Hero() {
   );
 }
 
-const features = [
-  {
-    title: "Policy & Disclosure Templates",
-    body: "Editable AI policy, data usage disclosure, and incident response templates."
-  },
-  {
-    title: "Risk & Vendor Checklists",
-    body: "Lightweight forms to vet third-party AI tools, datasets, and model providers."
-  },
-  {
-    title: "Bias / Safety Reviews",
-    body: "Practical prompts to run fairness checks and red-team user flows."
-  },
-  {
-    title: "Records & Audit Trails",
-    body: "Simple logging for prompts, data sources, approvals, and versioning."
-  },
-  {
-    title: "Training Materials",
-    body: "Short modules to teach staff how to use AI responsibly."
-  },
-  {
-    title: "Updates & Legal Signals",
-    body: "Plain-English updates when regulations or platform rules change."
-  }
-];
+
 
 // Feature grid listing toolkit contents
 function Features() {
@@ -409,21 +386,36 @@ function Footer() {
 }
 
 // Main app composition and section order
+function Home(){
+  useEffect(() => {
+    try{
+      const a = document.querySelector('a.btn.btn--ghost[href="#learn"]');
+      if (a) a.setAttribute('href', '/toolkit');
+    }catch{ /* noop */ }
+  }, []);
+  return (
+    <main id="main">
+      <Hero />
+      <RisksSectionData />
+      <LeadMagnetSection />
+      <div className="divider" />
+      {/* Features moved to /toolkit page */}
+      <HowItWorks />
+      <CTA />
+      <EmailCapture />
+    </main>
+  );
+}
+
 export default function App(){
   return (
     <>
       <Navbar />
-      {/* Main landmark for skip-link */}
-      <main id="main">
-        <Hero />
-        <RisksSectionData />
-        <LeadMagnetSection />
-        <div className="divider" />
-        <Features />
-        <HowItWorks />
-        <CTA />
-        <EmailCapture />
-      </main>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/toolkit" element={<Toolkit />} />
+        <Route path="/news" element={<News />} />
+      </Routes>
       <Footer />
     </>
   );
@@ -514,9 +506,9 @@ function RisksSectionData(){
           ))}
         </div>
 
-        <div className="hero-cta" style={{marginTop:18}}>
-          <a className="btn" href="https://complyai.com/toolkit" target="_blank" rel="noopener">Get the Toolkit</a>
-          <a className="btn btn--ghost" href="/leadmagnet.pdf" download>Download the free PDF</a>
+      <div className="hero-cta" style={{marginTop:18}}>
+          {/*<a className="btn" href="https://complyai.com/toolkit" target="_blank" rel="noopener">Get the Toolkit</a>
+          <a className="btn btn--ghost" href="/leadmagnet.pdf" download>Download the free PDF</a>*/}
         </div>
       </div>
     </section>

@@ -1,11 +1,33 @@
 // App entry: page layout and interactive sections
+<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import Toolkit from "./pages/Toolkit.jsx";
 import News from "./pages/News.jsx";
+=======
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Navbar from "./sections/Navbar";
+import Hero from "./sections/Hero";
+import AboutSection from "./sections/AboutSection";
+import RisksSectionData from "./sections/RisksSectionData";
+import LeadMagnetSection from "./sections/LeadMagnetSection";
+import Features from "./sections/Features";
+import HowItWorks from "./sections/HowItWorks";
+import NewsSection from "./sections/NewsSection";
+import CTA from "./sections/CTA";
+import Footer from "./sections/Footer";
+import NewsPage from "./pages/NewsPage";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import { newsItems } from "./content/siteContent";
+>>>>>>> bb587cb06e97be493dcdab8b59c29607d90975b1
 
-const BRAND = "ComplyAI"; // brand label
+const BRAND = "ComplyAI";
 
+<<<<<<< HEAD
 // Top navigation with brand and quick access links
 function Navbar() {
   return (
@@ -120,141 +142,55 @@ function EmailCapture(){
   }
 
   // Auto-close the updates form 5s after success
+=======
+function LandingPage() {
+>>>>>>> bb587cb06e97be493dcdab8b59c29607d90975b1
   useEffect(() => {
-    if (submitted && open) {
-      if (updatesCloseTimer.current) clearTimeout(updatesCloseTimer.current);
-      updatesCloseTimer.current = setTimeout(() => {
-        setOpen(false);
-        updatesCloseTimer.current = null;
-      }, 5000);
+    const sections = Array.from(document.querySelectorAll("[data-focus-section]"));
+    if (!sections.length) {
+      return;
     }
-    return () => {
-      if (updatesCloseTimer.current) {
-        clearTimeout(updatesCloseTimer.current);
-        updatesCloseTimer.current = null;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle("is-active", entry.isIntersecting);
+        });
+      },
+      {
+        root: null,
+        threshold: 0.55,
+        rootMargin: "-20% 0px -20% 0px"
       }
-    };
-  }, [submitted, open]);
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section className="section">
-      <div className="container">
-        <div className="cta" role="region" aria-label="Get updates">
-          <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
-            <div style={{textAlign:'left'}}>
-              <h3 style={{marginBottom:6}}>Get updates from {BRAND}</h3>
-              <p style={{margin:0}}>Be the first to hear about new templates and guidance.</p>
-            </div>
-            <button
-              className="btn btn--ghost"
-              type="button"
-              onClick={() => { setOpen(v => !v); setSubmitted(false); }}
-              aria-expanded={open}
-              aria-controls="email-capture"
-            >
-              {open ? 'Close' : 'Get updates via email'}
-            </button>
-          </div>
-
-          {open && (
-            <div id="email-capture" className="email-form" role="region" aria-label="Email capture">
-              {submitted ? (
-                <div className="email-form__success" role="status">
-                  {"Thanks! We'll keep you posted."}
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="email-form__row">
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="you@company.com"
-                    aria-label="Email address"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <button className="btn" type="submit">Notify me</button>
-                  <button className="btn btn--ghost" type="button" onClick={() => setOpen(false)}>Close</button>
-                </form>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
+    <main id="main">
+      <Hero brand={BRAND} />
+      <AboutSection brand={BRAND} />
+      <RisksSectionData />
+      <LeadMagnetSection />
+      <div className="divider" />
+      <Features />
+      <HowItWorks />
+      <NewsSection
+        brand={BRAND}
+        title="Latest ComplyAI news"
+        intro="Product updates, templates, and automation improvements for SMB teams."
+        items={newsItems}
+      />
+      <CTA />
+    </main>
   );
 }
 
-// Lead Magnet CTA in its own section with larger, bolder button
-// Lead magnet: hybrid flow (instant download + email copy)
-function LeadMagnetSection(){
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const closeTimer = useRef(null);
-
-  // Starts a direct download of the PDF for immediate access
-  function triggerDownload(){
-    try{
-      const a = document.createElement('a');
-      a.href = '/leadmagnet.pdf';
-      a.download = 'ComplyAI-Top-10-AI-Compliance-Mistakes.pdf';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }catch{ /* noop */ }
-  }
-
-  // Handles form submission: triggers download, then requests email delivery
-  async function handleSubmit(e){
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    // 1) Start the download immediately for best UX
-    triggerDownload();
-    setSubmitted(true);
-
-    // 2) Fire-and-forget email send (show error if it fails, but don't block)
-    try{
-      const resp = await fetch('/api/send-lead',{
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await resp.json().catch(() => ({}));
-      if(!resp.ok || data?.error){
-        throw new Error(data?.error || 'Failed to send email');
-      }
-      setEmail("");
-    }catch(err){
-      setError(err.message || 'We could not email the file.');
-    }finally{
-      setLoading(false);
-    }
-  }
-
-  // Auto-close the form 5s after success
-  useEffect(() => {
-    if (submitted && open) {
-      if (closeTimer.current) clearTimeout(closeTimer.current);
-      closeTimer.current = setTimeout(() => {
-        setOpen(false);
-        closeTimer.current = null;
-      }, 5000);
-    }
-    return () => {
-      if (closeTimer.current) {
-        clearTimeout(closeTimer.current);
-        closeTimer.current = null;
-      }
-    };
-  }, [submitted, open]);
-
+export default function App() {
   return (
+<<<<<<< HEAD
     <section className="section">
       <div className="container">
         <div className="cta lead-cta" role="region" aria-label="Lead Magnet">
@@ -564,5 +500,26 @@ function RisksSectionLegacy(){
         </div>
       </div>
     </section>
+=======
+    <AuthProvider>
+      <BrowserRouter>
+        <Navbar brand={BRAND} />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/news" element={<NewsPage brand={BRAND} />} />
+          <Route path="/login" element={<Login brand={BRAND} />} />
+          <Route
+            path="/app"
+            element={(
+              <ProtectedRoute>
+                <Dashboard brand={BRAND} />
+              </ProtectedRoute>
+            )}
+          />
+        </Routes>
+        <Footer brand={BRAND} />
+      </BrowserRouter>
+    </AuthProvider>
+>>>>>>> bb587cb06e97be493dcdab8b59c29607d90975b1
   );
 }

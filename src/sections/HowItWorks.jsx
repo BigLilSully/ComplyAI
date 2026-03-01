@@ -3,7 +3,7 @@ import { howItWorksSteps } from "../content/siteContent";
 
 export default function HowItWorks() {
   return (
-    <section className="section focus-section" data-focus-section="how-it-works">
+    <section id="how-it-works" className="section focus-section" data-focus-section="how-it-works">
       <div className="container">
         <h2>How it works in 3 steps</h2>
         <ol className="steps-list">

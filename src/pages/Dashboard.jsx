@@ -56,6 +56,7 @@ const TABS = [
   { id: "vendors",        label: "Vendors" },
   { id: "readiness",      label: "Readiness" },
 ];
+const TAB_IDS = new Set(TABS.map((tab) => tab.id));
 
 export default function Dashboard({ brand }) {
   const { user } = useAuth();
@@ -179,6 +180,26 @@ export default function Dashboard({ brand }) {
   useEffect(() => {
     if (activeWorkspaceId) localStorage.setItem("activeWorkspaceId", activeWorkspaceId);
   }, [activeWorkspaceId]);
+
+  useEffect(() => {
+    const applyHashTab = () => {
+      const hashTab = window.location.hash.replace("#", "").trim();
+      if (TAB_IDS.has(hashTab)) {
+        setActiveTab(hashTab);
+      }
+    };
+
+    applyHashTab();
+    window.addEventListener("hashchange", applyHashTab);
+    return () => window.removeEventListener("hashchange", applyHashTab);
+  }, []);
+
+  useEffect(() => {
+    const hashTab = window.location.hash.replace("#", "").trim();
+    if (activeTab && hashTab !== activeTab) {
+      window.history.replaceState(null, "", `#${activeTab}`);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     let isMounted = true;

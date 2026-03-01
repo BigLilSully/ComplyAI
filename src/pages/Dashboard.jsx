@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import Questionnaires from "../components/Questionnaires";
+import Readiness from "../components/Readiness";
+import Vendors from "../components/Vendors";
 import {
   addEvidenceItem,
   createAttestation,
@@ -597,74 +600,22 @@ export default function Dashboard({ brand }) {
           {/* ── QUESTIONNAIRES ────────────────────────────────────────────── */}
           {activeTab === "questionnaires" && (
             <div className="container dash-panel">
-              <div className="dash-section-grid">
-
-                <section className="feature app-card">
-                  <h3>Submit attestation</h3>
-                  <p>Collect signed confirmations from team members for a control.</p>
-                  <form onSubmit={handleCreateAttestation} className="app-form">
-                    <label>
-                      Audit run
-                      <select
-                        value={attestationRunId}
-                        onChange={(e) => setAttestationRunId(e.target.value)}
-                        required
-                      >
-                        <option value="">Select audit run</option>
-                        {auditRuns.map((run) => (
-                          <option key={run.id} value={run.id}>
-                            {run.status} · {run.period_start || "n/a"}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Control
-                      <select
-                        value={attestationControlId}
-                        onChange={(e) => setAttestationControlId(e.target.value)}
-                        required
-                      >
-                        <option value="">Select control</option>
-                        {controls.map((ctrl) => (
-                          <option key={ctrl.id} value={ctrl.id}>{ctrl.title}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Response
-                      <input
-                        type="text"
-                        value={attestationResponse}
-                        onChange={(e) => setAttestationResponse(e.target.value)}
-                        placeholder="attested"
-                      />
-                    </label>
-                    <button className="btn" type="submit" disabled={loading}>
-                      {loading ? "Saving…" : "Submit attestation"}
-                    </button>
-                  </form>
-                </section>
-
-                <section className="feature app-card">
-                  <h3>Attestations ({attestations.length})</h3>
-                  {attestations.length === 0 ? (
-                    <p>No attestations yet. Submit one to get started.</p>
-                  ) : (
-                    <div className="policy-list">
-                      {attestations.map((att) => (
-                        <div key={att.id} className="policy-item">
-                          <div>
-                            <strong>{att.response || "attested"}</strong>
-                            <span>{att.signed_at ? "Signed" : "Pending"}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-
-              </div>
+              <Questionnaires
+                policies={policies}
+                controls={controls}
+                evidenceItems={evidenceItems}
+                auditCycles={auditCycles}
+                auditRuns={auditRuns}
+                attestations={attestations}
+                attestationRunId={attestationRunId}
+                attestationControlId={attestationControlId}
+                attestationResponse={attestationResponse}
+                setAttestationRunId={setAttestationRunId}
+                setAttestationControlId={setAttestationControlId}
+                setAttestationResponse={setAttestationResponse}
+                handleCreateAttestation={handleCreateAttestation}
+                loading={loading}
+              />
             </div>
           )}
 
@@ -857,82 +808,24 @@ export default function Dashboard({ brand }) {
           {/* ── VENDORS ───────────────────────────────────────────────────── */}
           {activeTab === "vendors" && (
             <div className="container dash-panel">
-              <div className="dash-section-grid">
-
-                <section className="feature app-card">
-                  <h3>Vendor & model governance</h3>
-                  <p>Track approved AI vendors, DPAs, and model governance controls.</p>
-                  {(() => {
-                    const vendorControls = controls.filter(
-                      (c) =>
-                        c.title?.toLowerCase().includes("vendor") ||
-                        c.description?.toLowerCase().includes("vendor")
-                    );
-                    const vendorTemplate = templates.find((t) => t.category === "Vendors");
-                    return (
-                      <>
-                        {vendorTemplate && (
-                          <div className="template-item" style={{ marginTop: "12px" }}>
-                            <div>
-                              <strong>{vendorTemplate.title}</strong>
-                              <span>{vendorTemplate.category}</span>
-                            </div>
-                            <p>{vendorTemplate.description}</p>
-                          </div>
-                        )}
-                        {vendorControls.length > 0 ? (
-                          <div className="policy-list" style={{ marginTop: "12px" }}>
-                            <p style={{ marginBottom: "8px", color: "var(--cai-muted-on-dark)", margin: "0 0 8px" }}>
-                              Active vendor controls:
-                            </p>
-                            {vendorControls.map((ctrl) => (
-                              <div key={ctrl.id} className="policy-item">
-                                <div>
-                                  <strong>{ctrl.title}</strong>
-                                  <span>{ctrl.frequency || "unscheduled"}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          !vendorTemplate && (
-                            <p>No vendor controls yet. Generate controls from the Vendor & Model Governance policy in the Policies tab.</p>
-                          )
-                        )}
-                      </>
-                    );
-                  })()}
-                </section>
-
-                <section className="feature app-card">
-                  <h3>Vendor checklist</h3>
-                  <p>Coming soon — track DPA status, data residency, and renewal dates per vendor.</p>
-                  <div className="policy-list" style={{ marginTop: "12px" }}>
-                    {[
-                      "Data Processing Agreement (DPA) signed",
-                      "Data residency confirmed",
-                      "Model card reviewed",
-                      "Access controls documented",
-                      "Incident response contact confirmed"
-                    ].map((item, i) => (
-                      <div key={i} className="policy-item">
-                        <div>
-                          <strong>{item}</strong>
-                          <span>Not tracked yet</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-              </div>
+              <Vendors />
             </div>
           )}
 
           {/* ── READINESS ─────────────────────────────────────────────────── */}
           {activeTab === "readiness" && (
             <div className="container dash-panel">
-              <div className="dash-section-grid">
+              <Readiness
+                policies={policies}
+                controls={controls}
+                auditCycles={auditCycles}
+                auditRuns={auditRuns}
+                attestations={attestations}
+                evidenceItems={evidenceItems}
+              />
+
+              {/* Audit cycle + run management below the score */}
+              <div className="dash-section-grid" style={{ marginTop: "16px" }}>
 
                 <section className="feature app-card">
                   <h3>Create audit cycle</h3>

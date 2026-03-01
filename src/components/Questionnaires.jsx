@@ -1,83 +1,33 @@
 import { useRef, useState } from "react";
 import VerificationBadge from "./VerificationBadge";
+import { questionnaireExamples } from "../content/siteContent";
 
-const SAMPLE_QUESTIONS = [
-  {
-    id: 1,
-    text: "Do you have a written information security policy?",
-    keywords: ["usage", "security"],
-    draftFn: (policies) => {
-      const p = policies.find((p) =>
-        ["usage", "security"].some((k) => p.title?.toLowerCase().includes(k))
-      );
-      return p
-        ? `Yes. We maintain an approved "${p.title}" (status: ${p.status}).`
-        : "We are currently documenting our information security policies.";
-    },
-  },
-  {
-    id: 2,
-    text: "How do you handle customer data and what retention periods apply?",
-    keywords: ["data", "privacy"],
-    draftFn: (policies) => {
-      const p = policies.find((p) =>
-        ["data", "privacy"].some((k) => p.title?.toLowerCase().includes(k))
-      );
-      return p
-        ? `Customer data handling is governed by our "${p.title}". Retention periods and PII handling are documented within.`
-        : "Data handling procedures are being formalized. We follow industry-standard retention practices.";
-    },
-  },
-  {
-    id: 3,
-    text: "Do you have an incident response plan for security events?",
-    keywords: ["incident", "response"],
-    draftFn: (policies) => {
-      const p = policies.find((p) =>
-        ["incident", "response"].some((k) => p.title?.toLowerCase().includes(k))
-      );
-      return p
-        ? `Yes. Our "${p.title}" defines incident categories, response steps, notification requirements, and postmortem processes.`
-        : "An incident response plan is in development. Security events are escalated through our dedicated support channel.";
-    },
-  },
-  {
-    id: 4,
-    text: "How do you manage third-party vendors and AI model providers?",
-    keywords: ["vendor", "model", "governance"],
-    draftFn: (policies) => {
-      const p = policies.find((p) =>
-        ["vendor", "model"].some((k) => p.title?.toLowerCase().includes(k))
-      );
-      return p
-        ? `Third-party vendors are governed by our "${p.title}", covering due diligence, DPAs, and data residency requirements.`
-        : "Vendor management procedures are being established. We require Data Processing Agreements with all data processors.";
-    },
-  },
-  {
-    id: 5,
-    text: "How are access controls and prompt logging managed for AI systems?",
-    keywords: ["prompt", "logging", "access"],
-    draftFn: (policies) => {
-      const p = policies.find((p) =>
-        ["prompt", "logging", "access"].some((k) => p.title?.toLowerCase().includes(k))
-      );
-      return p
-        ? `Access controls and logging are governed by our "${p.title}", which defines scope, retention windows, and review cadence.`
-        : "Access control policies are in progress. We limit AI system access to authorized personnel.";
-    },
-  },
-  {
-    id: 6,
-    text: "Do you conduct regular audits of AI system usage and compliance?",
-    keywords: ["audit", "compliance"],
-    draftFn: (policies, auditCycles) => {
+// Build runtime question objects from siteContent claims.
+// draftFn: uses policy title when a match exists, falls back to the pre-written claim.
+const SAMPLE_QUESTIONS = questionnaireExamples.map((ex) => ({
+  id: ex.id,
+  text: ex.question,
+  keywords: ex.keywords,
+  category: ex.category,
+  draftFn: (policies, auditCycles) => {
+    if (ex.id === "q6") {
+      // Audit question — pull from live data when available
       return auditCycles.length > 0
         ? `Yes. We run ${auditCycles.length} audit cycle(s) — ${auditCycles.map((c) => c.frequency).join(", ")} — with documented runs and evidence collection.`
-        : "We are establishing recurring audit cycles. Quarterly compliance reviews are planned.";
-    },
+        : ex.claim;
+    }
+    const matched = policies.find((p) =>
+      ex.keywords.some((k) => p.title?.toLowerCase().includes(k))
+    );
+    // Interpolate policy title into the claim when a match exists
+    return matched
+      ? ex.claim.replace(
+          /our ([A-Z][^.]+Policy)/,
+          `our "${matched.title}" (${matched.status})`
+        )
+      : ex.claim;
   },
-];
+}));
 
 function getVerificationState(question, policies, evidenceItems) {
   const hasPolicy = policies.some((p) =>

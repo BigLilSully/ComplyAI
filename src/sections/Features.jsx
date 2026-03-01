@@ -5,7 +5,7 @@ export default function Features() {
   return (
     <section id="learn" className="section focus-section" data-focus-section="features">
       <div className="container">
-        <h2>What’s inside the Toolkit</h2>
+        <h2>What the copilot does daily</h2>
         <div className="grid-3 grid-3--spaced">
           {features.map((feature, index) => (
             <article key={index} className="feature" role="article">

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import NewsSection from "../sections/NewsSection";
 import { complianceNewsItems } from "../content/siteContent";
 
-export default function NewsPage({ brand }) {
+export default function NewsPage() {
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll("[data-focus-section]"));
     if (!sections.length) {
@@ -29,10 +29,10 @@ export default function NewsPage({ brand }) {
   return (
     <main id="main" className="news-page">
       <NewsSection
-        brand={brand}
         title="Latest AI compliance news"
         intro="Updates on regulations, enforcement actions, and practical compliance shifts."
         items={complianceNewsItems}
+        sectionId="news"
       />
     </main>
   );

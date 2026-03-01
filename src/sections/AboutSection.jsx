@@ -5,10 +5,10 @@ export default function AboutSection({ brand }) {
   return (
     <section id="about" className="section focus-section" data-focus-section="about">
       <div className="container">
-        <h2>About {brand}</h2>
+        <h2>Built for B2B SaaS teams and agencies</h2>
         <p className="section-intro">
-          {brand} helps teams align AI innovation with privacy, safety, and disclosure expectations.
-          The goal is simple: give you lightweight guardrails that move at product speed.
+          {brand} is designed for teams that need to pass buyer security reviews quickly
+          without building a large internal compliance function.
         </p>
         <div className="grid-3 grid-3--spaced">
           {aboutHighlights.map((item, index) => (

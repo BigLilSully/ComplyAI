@@ -6,17 +6,14 @@ import Navbar from "./sections/Navbar";
 import Hero from "./sections/Hero";
 import AboutSection from "./sections/AboutSection";
 import RisksSectionData from "./sections/RisksSectionData";
-import LeadMagnetSection from "./sections/LeadMagnetSection";
 import Features from "./sections/Features";
 import HowItWorks from "./sections/HowItWorks";
-import NewsSection from "./sections/NewsSection";
 import CTA from "./sections/CTA";
 import Footer from "./sections/Footer";
 import NewsPage from "./pages/NewsPage";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Toolkit from "./pages/Toolkit";
-import { newsItems } from "./content/siteContent";
 
 const BRAND = "ComplyAI";
 
@@ -47,18 +44,10 @@ function LandingPage() {
   return (
     <main id="main">
       <Hero brand={BRAND} />
-      <AboutSection brand={BRAND} />
       <RisksSectionData />
-      <LeadMagnetSection />
-      <div className="divider" />
       <Features />
       <HowItWorks />
-      <NewsSection
-        brand={BRAND}
-        title="Latest ComplyAI news"
-        intro="Product updates, templates, and automation improvements for SMB teams."
-        items={newsItems}
-      />
+      <AboutSection brand={BRAND} />
       <CTA />
     </main>
   );
@@ -71,7 +60,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/toolkit" element={<Toolkit />} />
-        <Route path="/news" element={<NewsPage brand={BRAND} />} />
+        <Route path="/news" element={<NewsPage />} />
         <Route path="/login" element={<Login brand={BRAND} />} />
         <Route
           path="/app"

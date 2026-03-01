@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import {
   addEvidenceItem,
@@ -20,41 +20,45 @@ const policyTemplateSeeds = [
     title: "AI Usage Policy",
     category: "Usage",
     description: "Define approved AI use cases, prohibited uses, and human oversight expectations.",
-    content:
-      "Scope, approved use cases, prohibited uses, human-in-the-loop requirements, and escalation paths."
+    content: "Scope, approved use cases, prohibited uses, human-in-the-loop requirements, and escalation paths."
   },
   {
     title: "Data Handling & Privacy Policy",
     category: "Data",
     description: "Clarify what data can be used in prompts, retention limits, and redaction rules.",
-    content:
-      "Data classification, PII handling, retention timelines, and redaction requirements."
+    content: "Data classification, PII handling, retention timelines, and redaction requirements."
   },
   {
     title: "Vendor & Model Governance Policy",
     category: "Vendors",
     description: "Set requirements for model providers, DPAs, and data residency.",
-    content:
-      "Approved vendors, due diligence checklist, data residency expectations, and contract requirements."
+    content: "Approved vendors, due diligence checklist, data residency expectations, and contract requirements."
   },
   {
     title: "Prompt Logging & Access Policy",
     category: "Security",
     description: "Define logging scope, access controls, and auditability for prompts and outputs.",
-    content:
-      "Logging scope, access controls, retention windows, and review cadence."
+    content: "Logging scope, access controls, retention windows, and review cadence."
   },
   {
     title: "AI Incident Response Policy",
     category: "Risk",
     description: "Outline response steps for data leakage, bias incidents, or model failures.",
-    content:
-      "Incident categories, response steps, notification requirements, and postmortem process."
+    content: "Incident categories, response steps, notification requirements, and postmortem process."
   }
 ];
 
+const TABS = [
+  { id: "inbox",          label: "Inbox" },
+  { id: "questionnaires", label: "Questionnaires" },
+  { id: "policies",       label: "Policies" },
+  { id: "evidence",       label: "Evidence" },
+  { id: "vendors",        label: "Vendors" },
+  { id: "readiness",      label: "Readiness" },
+];
+
 export default function Dashboard({ brand }) {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [workspaces, setWorkspaces] = useState([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(
     () => localStorage.getItem("activeWorkspaceId") || ""
@@ -83,11 +87,14 @@ export default function Dashboard({ brand }) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("inbox");
 
   const activeWorkspace = useMemo(
-    () => workspaces.find((workspace) => workspace.id === activeWorkspaceId),
+    () => workspaces.find((ws) => ws.id === activeWorkspaceId),
     [workspaces, activeWorkspaceId]
   );
+
+  // ── Data loading ────────────────────────────────────────────────────────────
 
   useEffect(() => {
     let isMounted = true;
@@ -128,19 +135,14 @@ export default function Dashboard({ brand }) {
     }
 
     loadWorkspaces();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [user, activeWorkspaceId]);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadTemplates() {
-      if (!activeWorkspaceId) {
-        setTemplates([]);
-        return;
-      }
+      if (!activeWorkspaceId) { setTemplates([]); return; }
       const { data, error: templateError } = await supabase
         .from("policy_templates")
         .select("id, title, category, description, content")
@@ -148,27 +150,18 @@ export default function Dashboard({ brand }) {
         .order("created_at", { ascending: true });
 
       if (!isMounted) return;
-      if (templateError) {
-        setTemplates([]);
-        return;
-      }
-      setTemplates(data || []);
+      setTemplates(templateError ? [] : (data || []));
     }
 
     loadTemplates();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [activeWorkspaceId]);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadPolicies() {
-      if (!activeWorkspaceId) {
-        setPolicies([]);
-        return;
-      }
+      if (!activeWorkspaceId) { setPolicies([]); return; }
       const { data, error: policyError } = await supabase
         .from("policies")
         .select("id, title, status, created_at")
@@ -176,23 +169,15 @@ export default function Dashboard({ brand }) {
         .order("created_at", { ascending: false });
 
       if (!isMounted) return;
-      if (policyError) {
-        setPolicies([]);
-        return;
-      }
-      setPolicies(data || []);
+      setPolicies(policyError ? [] : (data || []));
     }
 
     loadPolicies();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [activeWorkspaceId]);
 
   useEffect(() => {
-    if (activeWorkspaceId) {
-      localStorage.setItem("activeWorkspaceId", activeWorkspaceId);
-    }
+    if (activeWorkspaceId) localStorage.setItem("activeWorkspaceId", activeWorkspaceId);
   }, [activeWorkspaceId]);
 
   useEffect(() => {
@@ -208,19 +193,14 @@ export default function Dashboard({ brand }) {
         return;
       }
 
-      const [
-        controlsResp,
-        cyclesResp,
-        runsResp,
-        attestationsResp,
-        evidenceResp
-      ] = await Promise.all([
-        listControls(activeWorkspaceId),
-        listAuditCycles(activeWorkspaceId),
-        listAuditRuns(activeWorkspaceId),
-        listAttestations(activeWorkspaceId),
-        listEvidenceItems(activeWorkspaceId)
-      ]);
+      const [controlsResp, cyclesResp, runsResp, attestationsResp, evidenceResp] =
+        await Promise.all([
+          listControls(activeWorkspaceId),
+          listAuditCycles(activeWorkspaceId),
+          listAuditRuns(activeWorkspaceId),
+          listAttestations(activeWorkspaceId),
+          listEvidenceItems(activeWorkspaceId)
+        ]);
 
       if (!isMounted) return;
       setControls(controlsResp.data || []);
@@ -231,10 +211,10 @@ export default function Dashboard({ brand }) {
     }
 
     loadWorkspaceData();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [activeWorkspaceId]);
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
 
   async function handleCreateWorkspace(event) {
     event.preventDefault();
@@ -248,34 +228,19 @@ export default function Dashboard({ brand }) {
       .select()
       .single();
 
-    if (createError) {
-      setError(createError.message);
-      setLoading(false);
-      return;
-    }
+    if (createError) { setError(createError.message); setLoading(false); return; }
 
     const { error: membershipError } = await supabase
       .from("memberships")
       .insert({ workspace_id: workspace.id, user_id: user.id, role: "admin" });
 
-    if (membershipError) {
-      setError(membershipError.message);
-      setLoading(false);
-      return;
-    }
-
-    const templateRows = policyTemplateSeeds.map((template) => ({
-      workspace_id: workspace.id,
-      ...template
-    }));
+    if (membershipError) { setError(membershipError.message); setLoading(false); return; }
 
     const { error: templateError } = await supabase
       .from("policy_templates")
-      .insert(templateRows);
+      .insert(policyTemplateSeeds.map((t) => ({ workspace_id: workspace.id, ...t })));
 
-    if (templateError) {
-      setError("Workspace created, but templates could not be added.");
-    }
+    if (templateError) setError("Workspace created, but templates could not be added.");
 
     setName("");
     setWorkspaces((prev) => [
@@ -294,46 +259,22 @@ export default function Dashboard({ brand }) {
 
     const { data: policy, error: policyError } = await supabase
       .from("policies")
-      .insert({
-        workspace_id: activeWorkspaceId,
-        title: policyTitle.trim(),
-        status: "draft",
-        created_by: user.id
-      })
+      .insert({ workspace_id: activeWorkspaceId, title: policyTitle.trim(), status: "draft", created_by: user.id })
       .select()
       .single();
 
-    if (policyError) {
-      setError(policyError.message);
-      setLoading(false);
-      return;
-    }
+    if (policyError) { setError(policyError.message); setLoading(false); return; }
 
-    const selectedTemplate = templates.find((template) => template.id === selectedTemplateId);
+    const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
     const content = selectedTemplate?.content || "Start drafting your policy here.";
 
     const { error: versionError } = await supabase
       .from("policy_versions")
-      .insert({
-        policy_id: policy.id,
-        version: 1,
-        content,
-        created_by: user.id
-      });
+      .insert({ policy_id: policy.id, version: 1, content, created_by: user.id });
 
-    if (versionError) {
-      setError(versionError.message);
-      setLoading(false);
-      return;
-    }
+    if (versionError) { setError(versionError.message); setLoading(false); return; }
 
-    await logAuditEvent({
-      workspaceId: activeWorkspaceId,
-      actorId: user.id,
-      entityType: "policy",
-      entityId: policy.id,
-      action: "create"
-    });
+    await logAuditEvent({ workspaceId: activeWorkspaceId, actorId: user.id, entityType: "policy", entityId: policy.id, action: "create" });
 
     setPolicies((prev) => [
       { id: policy.id, title: policy.title, status: policy.status, created_at: policy.created_at },
@@ -350,26 +291,16 @@ export default function Dashboard({ brand }) {
     setLoading(true);
     setError("");
 
-    const policy = policies.find((item) => item.id === selectedPolicyId);
+    const policy = policies.find((p) => p.id === selectedPolicyId);
     const { data, error: controlsError } = await generateControlsFromPolicy({
       workspaceId: activeWorkspaceId,
       policyId: selectedPolicyId,
       title: policy?.title || "Policy"
     });
 
-    if (controlsError) {
-      setError(controlsError.message);
-      setLoading(false);
-      return;
-    }
+    if (controlsError) { setError(controlsError.message); setLoading(false); return; }
 
-    await logAuditEvent({
-      workspaceId: activeWorkspaceId,
-      actorId: user.id,
-      entityType: "controls",
-      entityId: selectedPolicyId,
-      action: "generate"
-    });
+    await logAuditEvent({ workspaceId: activeWorkspaceId, actorId: user.id, entityType: "controls", entityId: selectedPolicyId, action: "generate" });
 
     setControls((prev) => [...(data || []), ...prev]);
     setSelectedPolicyId("");
@@ -388,19 +319,9 @@ export default function Dashboard({ brand }) {
       frequency: auditCycleFrequency
     });
 
-    if (cycleError) {
-      setError(cycleError.message);
-      setLoading(false);
-      return;
-    }
+    if (cycleError) { setError(cycleError.message); setLoading(false); return; }
 
-    await logAuditEvent({
-      workspaceId: activeWorkspaceId,
-      actorId: user.id,
-      entityType: "audit_cycle",
-      entityId: data.id,
-      action: "create"
-    });
+    await logAuditEvent({ workspaceId: activeWorkspaceId, actorId: user.id, entityType: "audit_cycle", entityId: data.id, action: "create" });
 
     setAuditCycles((prev) => [data, ...prev]);
     setAuditCycleName("");
@@ -421,19 +342,9 @@ export default function Dashboard({ brand }) {
       periodEnd: runPeriodEnd || null
     });
 
-    if (runError) {
-      setError(runError.message);
-      setLoading(false);
-      return;
-    }
+    if (runError) { setError(runError.message); setLoading(false); return; }
 
-    await logAuditEvent({
-      workspaceId: activeWorkspaceId,
-      actorId: user.id,
-      entityType: "audit_run",
-      entityId: data.id,
-      action: "create"
-    });
+    await logAuditEvent({ workspaceId: activeWorkspaceId, actorId: user.id, entityType: "audit_run", entityId: data.id, action: "create" });
 
     setAuditRuns((prev) => [data, ...prev]);
     setRunCycleId("");
@@ -457,19 +368,9 @@ export default function Dashboard({ brand }) {
       notes: null
     });
 
-    if (attestationError) {
-      setError(attestationError.message);
-      setLoading(false);
-      return;
-    }
+    if (attestationError) { setError(attestationError.message); setLoading(false); return; }
 
-    await logAuditEvent({
-      workspaceId: activeWorkspaceId,
-      actorId: user.id,
-      entityType: "attestation",
-      entityId: data.id,
-      action: "create"
-    });
+    await logAuditEvent({ workspaceId: activeWorkspaceId, actorId: user.id, entityType: "attestation", entityId: data.id, action: "create" });
 
     setAttestations((prev) => [data, ...prev]);
     setAttestationRunId("");
@@ -493,19 +394,9 @@ export default function Dashboard({ brand }) {
       uploadedBy: user.id
     });
 
-    if (evidenceError) {
-      setError(evidenceError.message);
-      setLoading(false);
-      return;
-    }
+    if (evidenceError) { setError(evidenceError.message); setLoading(false); return; }
 
-    await logAuditEvent({
-      workspaceId: activeWorkspaceId,
-      actorId: user.id,
-      entityType: "evidence",
-      entityId: data.id,
-      action: "create"
-    });
+    await logAuditEvent({ workspaceId: activeWorkspaceId, actorId: user.id, entityType: "evidence", entityId: data.id, action: "create" });
 
     setEvidenceItems((prev) => [data, ...prev]);
     setEvidenceRunId("");
@@ -514,8 +405,56 @@ export default function Dashboard({ brand }) {
     setLoading(false);
   }
 
+  // ── Inbox derived data ───────────────────────────────────────────────────────
+
+  const inboxAutoCollected = useMemo(() => {
+    const items = [];
+    auditRuns.slice(0, 3).forEach((r) =>
+      items.push({ label: `Audit run · ${r.status}`, sub: r.period_start ? `${r.period_start} → ${r.period_end}` : "No period set" })
+    );
+    evidenceItems.slice(0, 3).forEach((e) =>
+      items.push({ label: "Evidence uploaded", sub: e.file_url })
+    );
+    return items;
+  }, [auditRuns, evidenceItems]);
+
+  const inboxNeedsReview = useMemo(() => {
+    const items = [];
+    policies.filter((p) => p.status === "draft").forEach((p) =>
+      items.push({ label: p.title, sub: "Draft — needs publish" })
+    );
+    auditRuns.filter((r) => r.status === "in_progress").forEach((r) =>
+      items.push({ label: "Audit in progress", sub: r.period_start || "No period" })
+    );
+    attestations.filter((a) => !a.signed_at).forEach((a) =>
+      items.push({ label: "Unsigned attestation", sub: a.response || "Pending signature" })
+    );
+    return items;
+  }, [policies, auditRuns, attestations]);
+
+  const inboxMissing = useMemo(() => {
+    const items = [];
+    const policiesWithControls = new Set(controls.map((c) => c.policy_id).filter(Boolean));
+    policies.forEach((p) => {
+      if (!policiesWithControls.has(p.id))
+        items.push({ label: p.title, sub: "No controls generated" });
+    });
+    const controlsWithEvidence = new Set(evidenceItems.map((e) => e.control_id).filter(Boolean));
+    controls.forEach((c) => {
+      if (!controlsWithEvidence.has(c.id))
+        items.push({ label: c.title, sub: "No evidence linked" });
+    });
+    if (auditCycles.length === 0)
+      items.push({ label: "No audit cycles", sub: "Set one up in Readiness" });
+    return items;
+  }, [policies, controls, evidenceItems, auditCycles]);
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
   return (
     <main id="main" className="app-shell">
+
+      {/* Header */}
       <div className="container app-header">
         <div>
           <h2>{brand} workspace</h2>
@@ -523,6 +462,7 @@ export default function Dashboard({ brand }) {
         </div>
       </div>
 
+      {/* Workspace selector */}
       <div className="container app-grid">
         <section className="feature app-card">
           <h3>Your workspaces</h3>
@@ -531,18 +471,20 @@ export default function Dashboard({ brand }) {
             <p>No workspace yet. Create one below to get started.</p>
           )}
           <div className="workspace-list">
-            {workspaces.map((workspace) => (
+            {workspaces.map((ws) => (
               <button
-                key={workspace.id}
+                key={ws.id}
                 type="button"
-                className={`workspace-item ${workspace.id === activeWorkspaceId ? "is-active" : ""}`}
-                onClick={() => setActiveWorkspaceId(workspace.id)}
+                className={`workspace-item ${ws.id === activeWorkspaceId ? "is-active" : ""}`}
+                onClick={() => setActiveWorkspaceId(ws.id)}
               >
                 <div>
-                  <strong>{workspace.name}</strong>
-                  <span>{workspace.role}</span>
+                  <strong>{ws.name}</strong>
+                  <span>{ws.role}</span>
                 </div>
-                <span className="workspace-pill">Active</span>
+                {ws.id === activeWorkspaceId && (
+                  <span className="workspace-pill">Active</span>
+                )}
               </button>
             ))}
           </div>
@@ -558,7 +500,7 @@ export default function Dashboard({ brand }) {
               <input
                 type="text"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Acme Corp"
                 required
               />
@@ -570,336 +512,538 @@ export default function Dashboard({ brand }) {
         </section>
       </div>
 
+      {/* Tab shell — only shown when a workspace is active */}
       {activeWorkspace && (
-        <div className="container app-stack">
-          <section className="feature app-card">
-            <h3>Active workspace</h3>
-            <p>
-              <strong>{activeWorkspace.name}</strong> • Role: {activeWorkspace.role}
-            </p>
-            <p>Next: add policy templates, controls, and audit cycles.</p>
-          </section>
-          <section className="feature app-card">
-            <h3>Policy templates</h3>
-            {templates.length === 0 ? (
-              <p>No templates yet. Create a workspace to seed starter templates.</p>
-            ) : (
-              <div className="template-list">
-                {templates.map((template) => (
-                  <div key={template.id} className="template-item">
-                    <div>
-                      <strong>{template.title}</strong>
-                      <span>{template.category}</span>
-                    </div>
-                    <p>{template.description}</p>
+        <>
+          {/* Tab bar */}
+          <div className="container dash-tab-bar">
+            <div className="dash-tab-bar__inner">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`dash-tab ${activeTab === tab.id ? "is-active" : ""}`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <span className="dash-workspace-pill">
+              {activeWorkspace.name} · {activeWorkspace.role}
+            </span>
+          </div>
+
+          {/* ── INBOX ─────────────────────────────────────────────────────── */}
+          {activeTab === "inbox" && (
+            <div className="container dash-panel">
+              <div className="inbox-grid">
+
+                <div className="inbox-col">
+                  <div className="inbox-col__header inbox-col__header--teal">
+                    <span className="inbox-col__dot" />
+                    Auto-collected
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-          <section className="feature app-card">
-            <h3>Policies</h3>
-            <form onSubmit={handleCreatePolicy} className="app-form">
-              <label>
-                Policy title
-                <input
-                  type="text"
-                  value={policyTitle}
-                  onChange={(event) => setPolicyTitle(event.target.value)}
-                  placeholder="AI Usage Policy"
-                  required
-                />
-              </label>
-              <label>
-                Template (optional)
-                <select
-                  value={selectedTemplateId}
-                  onChange={(event) => setSelectedTemplateId(event.target.value)}
-                >
-                  <option value="">Start from blank</option>
-                  {templates.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Creating…" : "Create policy"}
-              </button>
-            </form>
-            {policies.length === 0 ? (
-              <p>No policies yet. Create one to get started.</p>
-            ) : (
-              <div className="policy-list">
-                {policies.map((policy) => (
-                  <div key={policy.id} className="policy-item">
-                    <div>
-                      <strong>{policy.title}</strong>
-                      <span>{policy.status}</span>
-                    </div>
+                  {inboxAutoCollected.length === 0 ? (
+                    <p className="inbox-empty">Nothing collected yet. Run an audit or add evidence.</p>
+                  ) : (
+                    inboxAutoCollected.map((item, i) => (
+                      <div key={i} className="inbox-item">
+                        <strong>{item.label}</strong>
+                        <span>{item.sub}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="inbox-col">
+                  <div className="inbox-col__header inbox-col__header--gold">
+                    <span className="inbox-col__dot inbox-col__dot--gold" />
+                    Needs review
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-          <section className="feature app-card">
-            <h3>Controls</h3>
-            <form onSubmit={handleGenerateControls} className="app-form">
-              <label>
-                Generate from policy
-                <select
-                  value={selectedPolicyId}
-                  onChange={(event) => setSelectedPolicyId(event.target.value)}
-                  required
-                >
-                  <option value="">Select a policy</option>
-                  {policies.map((policy) => (
-                    <option key={policy.id} value={policy.id}>
-                      {policy.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Generating…" : "Generate controls"}
-              </button>
-            </form>
-            {controls.length === 0 ? (
-              <p>No controls yet. Generate them from a policy.</p>
-            ) : (
-              <div className="policy-list">
-                {controls.map((control) => (
-                  <div key={control.id} className="policy-item">
-                    <div>
-                      <strong>{control.title}</strong>
-                      <span>{control.frequency || "unscheduled"}</span>
-                    </div>
+                  {inboxNeedsReview.length === 0 ? (
+                    <p className="inbox-empty">Everything is up to date.</p>
+                  ) : (
+                    inboxNeedsReview.map((item, i) => (
+                      <div key={i} className="inbox-item inbox-item--warn">
+                        <strong>{item.label}</strong>
+                        <span>{item.sub}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="inbox-col">
+                  <div className="inbox-col__header inbox-col__header--red">
+                    <span className="inbox-col__dot inbox-col__dot--red" />
+                    Missing
                   </div>
-                ))}
+                  {inboxMissing.length === 0 ? (
+                    <p className="inbox-empty">No gaps identified.</p>
+                  ) : (
+                    inboxMissing.map((item, i) => (
+                      <div key={i} className="inbox-item inbox-item--danger">
+                        <strong>{item.label}</strong>
+                        <span>{item.sub}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
               </div>
-            )}
-          </section>
-          <section className="feature app-card">
-            <h3>Audit cycles</h3>
-            <form onSubmit={handleCreateAuditCycle} className="app-form">
-              <label>
-                Cycle name
-                <input
-                  type="text"
-                  value={auditCycleName}
-                  onChange={(event) => setAuditCycleName(event.target.value)}
-                  placeholder="Monthly AI Compliance"
-                  required
-                />
-              </label>
-              <label>
-                Frequency
-                <select
-                  value={auditCycleFrequency}
-                  onChange={(event) => setAuditCycleFrequency(event.target.value)}
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="yearly">Yearly</option>
-                  <option value="custom">Custom</option>
-                </select>
-              </label>
-              <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Creating…" : "Create audit cycle"}
-              </button>
-            </form>
-            {auditCycles.length === 0 ? (
-              <p>No audit cycles yet.</p>
-            ) : (
-              <div className="policy-list">
-                {auditCycles.map((cycle) => (
-                  <div key={cycle.id} className="policy-item">
-                    <div>
-                      <strong>{cycle.name}</strong>
-                      <span>{cycle.frequency}</span>
+            </div>
+          )}
+
+          {/* ── QUESTIONNAIRES ────────────────────────────────────────────── */}
+          {activeTab === "questionnaires" && (
+            <div className="container dash-panel">
+              <div className="dash-section-grid">
+
+                <section className="feature app-card">
+                  <h3>Submit attestation</h3>
+                  <p>Collect signed confirmations from team members for a control.</p>
+                  <form onSubmit={handleCreateAttestation} className="app-form">
+                    <label>
+                      Audit run
+                      <select
+                        value={attestationRunId}
+                        onChange={(e) => setAttestationRunId(e.target.value)}
+                        required
+                      >
+                        <option value="">Select audit run</option>
+                        {auditRuns.map((run) => (
+                          <option key={run.id} value={run.id}>
+                            {run.status} · {run.period_start || "n/a"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Control
+                      <select
+                        value={attestationControlId}
+                        onChange={(e) => setAttestationControlId(e.target.value)}
+                        required
+                      >
+                        <option value="">Select control</option>
+                        {controls.map((ctrl) => (
+                          <option key={ctrl.id} value={ctrl.id}>{ctrl.title}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Response
+                      <input
+                        type="text"
+                        value={attestationResponse}
+                        onChange={(e) => setAttestationResponse(e.target.value)}
+                        placeholder="attested"
+                      />
+                    </label>
+                    <button className="btn" type="submit" disabled={loading}>
+                      {loading ? "Saving…" : "Submit attestation"}
+                    </button>
+                  </form>
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Attestations ({attestations.length})</h3>
+                  {attestations.length === 0 ? (
+                    <p>No attestations yet. Submit one to get started.</p>
+                  ) : (
+                    <div className="policy-list">
+                      {attestations.map((att) => (
+                        <div key={att.id} className="policy-item">
+                          <div>
+                            <strong>{att.response || "attested"}</strong>
+                            <span>{att.signed_at ? "Signed" : "Pending"}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
+                  )}
+                </section>
+
               </div>
-            )}
-          </section>
-          <section className="feature app-card">
-            <h3>Audit runs</h3>
-            <form onSubmit={handleRunAudit} className="app-form">
-              <label>
-                Audit cycle
-                <select
-                  value={runCycleId}
-                  onChange={(event) => setRunCycleId(event.target.value)}
-                  required
-                >
-                  <option value="">Select cycle</option>
-                  {auditCycles.map((cycle) => (
-                    <option key={cycle.id} value={cycle.id}>
-                      {cycle.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Period start
-                <input
-                  type="date"
-                  value={runPeriodStart}
-                  onChange={(event) => setRunPeriodStart(event.target.value)}
-                />
-              </label>
-              <label>
-                Period end
-                <input
-                  type="date"
-                  value={runPeriodEnd}
-                  onChange={(event) => setRunPeriodEnd(event.target.value)}
-                />
-              </label>
-              <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Scheduling…" : "Run audit"}
-              </button>
-            </form>
-            {auditRuns.length === 0 ? (
-              <p>No audit runs yet.</p>
-            ) : (
-              <div className="policy-list">
-                {auditRuns.map((run) => (
-                  <div key={run.id} className="policy-item">
-                    <div>
-                      <strong>{run.status}</strong>
-                      <span>{run.period_start || "n/a"} to {run.period_end || "n/a"}</span>
+            </div>
+          )}
+
+          {/* ── POLICIES ──────────────────────────────────────────────────── */}
+          {activeTab === "policies" && (
+            <div className="container dash-panel">
+              <div className="dash-section-grid">
+
+                <section className="feature app-card">
+                  <h3>Create policy</h3>
+                  <form onSubmit={handleCreatePolicy} className="app-form">
+                    <label>
+                      Policy title
+                      <input
+                        type="text"
+                        value={policyTitle}
+                        onChange={(e) => setPolicyTitle(e.target.value)}
+                        placeholder="AI Usage Policy"
+                        required
+                      />
+                    </label>
+                    <label>
+                      Template (optional)
+                      <select
+                        value={selectedTemplateId}
+                        onChange={(e) => setSelectedTemplateId(e.target.value)}
+                      >
+                        <option value="">Start from blank</option>
+                        {templates.map((tpl) => (
+                          <option key={tpl.id} value={tpl.id}>{tpl.title}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className="btn" type="submit" disabled={loading}>
+                      {loading ? "Creating…" : "Create policy"}
+                    </button>
+                  </form>
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Policies ({policies.length})</h3>
+                  {policies.length === 0 ? (
+                    <p>No policies yet. Create one to get started.</p>
+                  ) : (
+                    <div className="policy-list">
+                      {policies.map((p) => (
+                        <div key={p.id} className="policy-item">
+                          <div>
+                            <strong>{p.title}</strong>
+                            <span>{p.status}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-          <section className="feature app-card">
-            <h3>Attestations</h3>
-            <form onSubmit={handleCreateAttestation} className="app-form">
-              <label>
-                Audit run
-                <select
-                  value={attestationRunId}
-                  onChange={(event) => setAttestationRunId(event.target.value)}
-                  required
-                >
-                  <option value="">Select audit run</option>
-                  {auditRuns.map((run) => (
-                    <option key={run.id} value={run.id}>
-                      {run.status} • {run.period_start || "n/a"}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Control
-                <select
-                  value={attestationControlId}
-                  onChange={(event) => setAttestationControlId(event.target.value)}
-                  required
-                >
-                  <option value="">Select control</option>
-                  {controls.map((control) => (
-                    <option key={control.id} value={control.id}>
-                      {control.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Response
-                <input
-                  type="text"
-                  value={attestationResponse}
-                  onChange={(event) => setAttestationResponse(event.target.value)}
-                  placeholder="attested"
-                />
-              </label>
-              <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Saving…" : "Submit attestation"}
-              </button>
-            </form>
-            {attestations.length === 0 ? (
-              <p>No attestations yet.</p>
-            ) : (
-              <div className="policy-list">
-                {attestations.map((attestation) => (
-                  <div key={attestation.id} className="policy-item">
-                    <div>
-                      <strong>{attestation.response || "attested"}</strong>
-                      <span>{attestation.signed_at ? "signed" : "pending"}</span>
+                  )}
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Generate controls</h3>
+                  <p>Auto-generate ownership, evidence, and review controls from a policy.</p>
+                  <form onSubmit={handleGenerateControls} className="app-form">
+                    <label>
+                      Policy
+                      <select
+                        value={selectedPolicyId}
+                        onChange={(e) => setSelectedPolicyId(e.target.value)}
+                        required
+                      >
+                        <option value="">Select a policy</option>
+                        {policies.map((p) => (
+                          <option key={p.id} value={p.id}>{p.title}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className="btn" type="submit" disabled={loading}>
+                      {loading ? "Generating…" : "Generate controls"}
+                    </button>
+                  </form>
+                  {controls.length > 0 && (
+                    <div className="policy-list" style={{ marginTop: "12px" }}>
+                      {controls.map((ctrl) => (
+                        <div key={ctrl.id} className="policy-item">
+                          <div>
+                            <strong>{ctrl.title}</strong>
+                            <span>{ctrl.frequency || "unscheduled"}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-          <section className="feature app-card">
-            <h3>Evidence</h3>
-            <form onSubmit={handleAddEvidence} className="app-form">
-              <label>
-                Audit run
-                <select
-                  value={evidenceRunId}
-                  onChange={(event) => setEvidenceRunId(event.target.value)}
-                  required
-                >
-                  <option value="">Select audit run</option>
-                  {auditRuns.map((run) => (
-                    <option key={run.id} value={run.id}>
-                      {run.status} • {run.period_start || "n/a"}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Control (optional)
-                <select
-                  value={evidenceControlId}
-                  onChange={(event) => setEvidenceControlId(event.target.value)}
-                >
-                  <option value="">No control</option>
-                  {controls.map((control) => (
-                    <option key={control.id} value={control.id}>
-                      {control.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Evidence URL
-                <input
-                  type="url"
-                  value={evidenceUrl}
-                  onChange={(event) => setEvidenceUrl(event.target.value)}
-                  placeholder="https://..."
-                  required
-                />
-              </label>
-              <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Saving…" : "Add evidence"}
-              </button>
-            </form>
-            {evidenceItems.length === 0 ? (
-              <p>No evidence yet.</p>
-            ) : (
-              <div className="policy-list">
-                {evidenceItems.map((item) => (
-                  <div key={item.id} className="policy-item">
-                    <div>
-                      <strong>Evidence item</strong>
-                      <span>{item.file_url}</span>
+                  )}
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Policy templates</h3>
+                  <p>Starter templates seeded when this workspace was created.</p>
+                  {templates.length === 0 ? (
+                    <p>No templates available.</p>
+                  ) : (
+                    <div className="template-list">
+                      {templates.map((tpl) => (
+                        <div key={tpl.id} className="template-item">
+                          <div>
+                            <strong>{tpl.title}</strong>
+                            <span>{tpl.category}</span>
+                          </div>
+                          <p>{tpl.description}</p>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
+                  )}
+                </section>
+
               </div>
-            )}
-          </section>
-        </div>
+            </div>
+          )}
+
+          {/* ── EVIDENCE ──────────────────────────────────────────────────── */}
+          {activeTab === "evidence" && (
+            <div className="container dash-panel">
+              <div className="dash-section-grid">
+
+                <section className="feature app-card">
+                  <h3>Add evidence</h3>
+                  <form onSubmit={handleAddEvidence} className="app-form">
+                    <label>
+                      Audit run
+                      <select
+                        value={evidenceRunId}
+                        onChange={(e) => setEvidenceRunId(e.target.value)}
+                        required
+                      >
+                        <option value="">Select audit run</option>
+                        {auditRuns.map((run) => (
+                          <option key={run.id} value={run.id}>
+                            {run.status} · {run.period_start || "n/a"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Control (optional)
+                      <select
+                        value={evidenceControlId}
+                        onChange={(e) => setEvidenceControlId(e.target.value)}
+                      >
+                        <option value="">No control</option>
+                        {controls.map((ctrl) => (
+                          <option key={ctrl.id} value={ctrl.id}>{ctrl.title}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Evidence URL
+                      <input
+                        type="url"
+                        value={evidenceUrl}
+                        onChange={(e) => setEvidenceUrl(e.target.value)}
+                        placeholder="https://..."
+                        required
+                      />
+                    </label>
+                    <button className="btn" type="submit" disabled={loading}>
+                      {loading ? "Saving…" : "Add evidence"}
+                    </button>
+                  </form>
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Evidence items ({evidenceItems.length})</h3>
+                  {evidenceItems.length === 0 ? (
+                    <p>No evidence yet. Add a URL to link proof to a control.</p>
+                  ) : (
+                    <div className="policy-list">
+                      {evidenceItems.map((item) => (
+                        <div key={item.id} className="policy-item">
+                          <div>
+                            <strong>Evidence item</strong>
+                            <span>{item.file_url}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+              </div>
+            </div>
+          )}
+
+          {/* ── VENDORS ───────────────────────────────────────────────────── */}
+          {activeTab === "vendors" && (
+            <div className="container dash-panel">
+              <div className="dash-section-grid">
+
+                <section className="feature app-card">
+                  <h3>Vendor & model governance</h3>
+                  <p>Track approved AI vendors, DPAs, and model governance controls.</p>
+                  {(() => {
+                    const vendorControls = controls.filter(
+                      (c) =>
+                        c.title?.toLowerCase().includes("vendor") ||
+                        c.description?.toLowerCase().includes("vendor")
+                    );
+                    const vendorTemplate = templates.find((t) => t.category === "Vendors");
+                    return (
+                      <>
+                        {vendorTemplate && (
+                          <div className="template-item" style={{ marginTop: "12px" }}>
+                            <div>
+                              <strong>{vendorTemplate.title}</strong>
+                              <span>{vendorTemplate.category}</span>
+                            </div>
+                            <p>{vendorTemplate.description}</p>
+                          </div>
+                        )}
+                        {vendorControls.length > 0 ? (
+                          <div className="policy-list" style={{ marginTop: "12px" }}>
+                            <p style={{ marginBottom: "8px", color: "var(--cai-muted-on-dark)", margin: "0 0 8px" }}>
+                              Active vendor controls:
+                            </p>
+                            {vendorControls.map((ctrl) => (
+                              <div key={ctrl.id} className="policy-item">
+                                <div>
+                                  <strong>{ctrl.title}</strong>
+                                  <span>{ctrl.frequency || "unscheduled"}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          !vendorTemplate && (
+                            <p>No vendor controls yet. Generate controls from the Vendor & Model Governance policy in the Policies tab.</p>
+                          )
+                        )}
+                      </>
+                    );
+                  })()}
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Vendor checklist</h3>
+                  <p>Coming soon — track DPA status, data residency, and renewal dates per vendor.</p>
+                  <div className="policy-list" style={{ marginTop: "12px" }}>
+                    {[
+                      "Data Processing Agreement (DPA) signed",
+                      "Data residency confirmed",
+                      "Model card reviewed",
+                      "Access controls documented",
+                      "Incident response contact confirmed"
+                    ].map((item, i) => (
+                      <div key={i} className="policy-item">
+                        <div>
+                          <strong>{item}</strong>
+                          <span>Not tracked yet</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+              </div>
+            </div>
+          )}
+
+          {/* ── READINESS ─────────────────────────────────────────────────── */}
+          {activeTab === "readiness" && (
+            <div className="container dash-panel">
+              <div className="dash-section-grid">
+
+                <section className="feature app-card">
+                  <h3>Create audit cycle</h3>
+                  <form onSubmit={handleCreateAuditCycle} className="app-form">
+                    <label>
+                      Cycle name
+                      <input
+                        type="text"
+                        value={auditCycleName}
+                        onChange={(e) => setAuditCycleName(e.target.value)}
+                        placeholder="Monthly AI Compliance"
+                        required
+                      />
+                    </label>
+                    <label>
+                      Frequency
+                      <select
+                        value={auditCycleFrequency}
+                        onChange={(e) => setAuditCycleFrequency(e.target.value)}
+                      >
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly">Yearly</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                    </label>
+                    <button className="btn" type="submit" disabled={loading}>
+                      {loading ? "Creating…" : "Create audit cycle"}
+                    </button>
+                  </form>
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Audit cycles ({auditCycles.length})</h3>
+                  {auditCycles.length === 0 ? (
+                    <p>No audit cycles yet. Create one to start scheduling reviews.</p>
+                  ) : (
+                    <div className="policy-list">
+                      {auditCycles.map((cycle) => (
+                        <div key={cycle.id} className="policy-item">
+                          <div>
+                            <strong>{cycle.name}</strong>
+                            <span>{cycle.frequency}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Run audit</h3>
+                  <form onSubmit={handleRunAudit} className="app-form">
+                    <label>
+                      Audit cycle
+                      <select
+                        value={runCycleId}
+                        onChange={(e) => setRunCycleId(e.target.value)}
+                        required
+                      >
+                        <option value="">Select cycle</option>
+                        {auditCycles.map((cycle) => (
+                          <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Period start
+                      <input
+                        type="date"
+                        value={runPeriodStart}
+                        onChange={(e) => setRunPeriodStart(e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Period end
+                      <input
+                        type="date"
+                        value={runPeriodEnd}
+                        onChange={(e) => setRunPeriodEnd(e.target.value)}
+                      />
+                    </label>
+                    <button className="btn" type="submit" disabled={loading}>
+                      {loading ? "Scheduling…" : "Run audit"}
+                    </button>
+                  </form>
+                </section>
+
+                <section className="feature app-card">
+                  <h3>Audit runs ({auditRuns.length})</h3>
+                  {auditRuns.length === 0 ? (
+                    <p>No audit runs yet.</p>
+                  ) : (
+                    <div className="policy-list">
+                      {auditRuns.map((run) => (
+                        <div key={run.id} className="policy-item">
+                          <div>
+                            <strong>{run.status}</strong>
+                            <span>{run.period_start || "n/a"} → {run.period_end || "n/a"}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+              </div>
+            </div>
+          )}
+
+        </>
       )}
     </main>
   );
